@@ -15,6 +15,12 @@ class Settings(BaseSettings):
     cloudinary_api_key: str = ""
     cloudinary_api_secret: str = ""
     app_env: str = "development"
+    admin_1_phone: str = ""
+    admin_1_password: str = ""
+    admin_1_name: str = ""
+    admin_2_phone: str = ""
+    admin_2_password: str = ""
+    admin_2_name: str = ""
 
     @property
     def cors_origin_list(self) -> list[str]:

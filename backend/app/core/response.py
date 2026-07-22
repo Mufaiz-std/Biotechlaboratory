@@ -18,7 +18,7 @@ def success_response(
 ) -> JSONResponse:
     return JSONResponse(
         status_code=status_code,
-        content=ApiResponse(success=True, message=message, data=data, errors=None).model_dump(),
+        content=ApiResponse(success=True, message=message, data=data, errors=None).model_dump(mode="json"),
     )
 
 
@@ -30,5 +30,5 @@ def error_response(
 ) -> JSONResponse:
     return JSONResponse(
         status_code=status_code,
-        content=ApiResponse(success=False, message=message, data=data, errors=errors).model_dump(),
+        content=ApiResponse(success=False, message=message, data=data, errors=errors).model_dump(mode="json"),
     )
