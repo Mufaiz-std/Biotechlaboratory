@@ -141,7 +141,9 @@ export default function AddressMap({
             position={position}
             onDragEnd={(lat, lng) => {
               onCoordsChange(lat, lng);
-              reverseGeocode(lat, lng);
+              if (!address || address.trim() === "") {
+                reverseGeocode(lat, lng);
+              }
             }}
           />
         </MapContainer>

@@ -57,6 +57,15 @@ def create_booking(db: Session, payload: BookingCreateRequest) -> dict:
         booking = db.query(Booking).filter(Booking.id == booking_id).first()
         if booking:
             slot = db.query(TimeSlot).filter(TimeSlot.id == booking.slot_id).first()
+            btests = db.query(BookingTest).filter(BookingTest.booking_id == booking.id).all()
+            tests_summary_str = ""
+            if booking.package_name_at_booking:
+                tests_summary_str = booking.package_name_at_booking
+            elif btests:
+                tests_summary_str = ", ".join(t.test_name_at_booking for t in btests)
+            elif booking.prescription_image_url:
+                tests_summary_str = "Prescription Uploaded"
+                
             url, message = build_patient_submission_url(
                 db,
                 booking.phone,
@@ -64,6 +73,7 @@ def create_booking(db: Session, payload: BookingCreateRequest) -> dict:
                 booking.patient_name,
                 booking.preferred_date.strftime("%d %b %Y"),
                 _format_slot_time(slot) if slot else "",
+                tests_summary_str,
             )
             return {
                 "booking_id": booking.id,
@@ -160,6 +170,14 @@ def create_booking(db: Session, payload: BookingCreateRequest) -> dict:
     if payload.idempotency_key:
         _idempotency_cache[payload.idempotency_key] = booking.id
 
+    tests_summary_str = ""
+    if package_name:
+        tests_summary_str = package_name
+    elif payload.test_ids:
+        tests_summary_str = ", ".join(t.name for t in tests)
+    elif payload.prescription_image_url:
+        tests_summary_str = "Prescription Uploaded"
+
     url, message = build_patient_submission_url(
         db,
         booking.phone,
@@ -167,6 +185,7 @@ def create_booking(db: Session, payload: BookingCreateRequest) -> dict:
         booking.patient_name,
         booking.preferred_date.strftime("%d %b %Y"),
         _format_slot_time(slot),
+        tests_summary_str,
     )
     return {
         "booking_id": booking.id,

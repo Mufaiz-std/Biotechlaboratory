@@ -25,7 +25,7 @@ DEFAULT_TEMPLATES = {
     ),
     WhatsAppTemplateType.PATIENT_SUBMISSION: (
         "Hello,\n\nI have requested a Home Collection.\n\n"
-        "Booking ID: {BOOKING_ID}\n\nName: {PATIENT_NAME}\n\n"
+        "Booking ID: {BOOKING_ID}\n\nName: {PATIENT_NAME}\n\nTests: {TESTS}\n\n"
         "Preferred Date: {DATE}\n\nPreferred Slot: {TIME}\n\n"
         "Please confirm my booking.\n\nThank you."
     ),
@@ -64,15 +64,17 @@ def build_patient_submission_url(
     patient_name: str,
     date_str: str,
     time_str: str,
+    tests_str: str = "",
 ) -> tuple[str, str]:
     lab = get_lab_settings(db)
-    lab_phone = normalize_phone(lab.whatsapp_number or lab.phone or patient_phone)
+    lab_phone = normalize_phone(lab.whatsapp_number or lab.phone or "")
     template = get_template(db, WhatsAppTemplateType.PATIENT_SUBMISSION)
     message = render_template(
         template,
         {
             "BOOKING_ID": booking_number,
             "PATIENT_NAME": patient_name,
+            "TESTS": tests_str,
             "DATE": date_str,
             "TIME": time_str,
         },

@@ -520,7 +520,7 @@ export default function BookingWizard() {
                     className={`h-16 flex-col gap-1 rounded-xl ${draft.date_mode === mode ? 'border-primary ring-1 ring-primary text-primary' : 'text-muted-foreground'}`}
                     onClick={() => setDateMode(mode)}
                   >
-                    <span className="text-[10px] font-semibold uppercase tracking-wider">{mode === "today" ? "Mon" : "Tue"}</span>
+                    <span className="text-[10px] font-semibold uppercase tracking-wider">{addDays(new Date(), mode === "today" ? 0 : 1).toLocaleDateString('en-US', { weekday: 'short' })}</span>
                     <span className="text-lg font-bold">{addDays(new Date(), mode === "today" ? 0 : 1).getDate()}</span>
                   </Button>
                 ))}

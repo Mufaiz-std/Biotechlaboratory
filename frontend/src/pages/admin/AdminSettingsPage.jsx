@@ -4,6 +4,7 @@ import api from "@/lib/api";
 import { getApiData } from "@/lib/apiHelpers";
 import { formatSlotRange } from "@/lib/format";
 import { useAuth } from "@/context/AuthContext";
+import { FiChevronDown, FiChevronRight } from "react-icons/fi";
 import ConfirmDisableDialog from "@/components/ConfirmDisableDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -238,6 +239,11 @@ function TestsTab({ saveLock }) {
   const [editingCategory, setEditingCategory] = useState(null);
   const [editCatName, setEditCatName] = useState("");
   const [deleteCatTarget, setDeleteCatTarget] = useState(null);
+  const [showCategories, setShowCategories] = useState(true);
+  const [showTests, setShowTests] = useState(true);
+  const [catSearch, setCatSearch] = useState("");
+  const [testSearch, setTestSearch] = useState("");
+  const testFormRef = useRef(null);
 
   const load = () =>
     Promise.all([api.get("/admin/categories"), api.get("/admin/tests")]).then(([c, t]) => {
@@ -331,11 +337,15 @@ function TestsTab({ saveLock }) {
       patient_instruction: t.patient_instruction || "",
     });
     // Scroll to the top where the form is
-    const mainArea = document.getElementById("admin-main");
-    if (mainArea) {
-      mainArea.scrollTo({ top: 0, behavior: "smooth" });
+    if (testFormRef.current) {
+      testFormRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
     } else {
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      const mainArea = document.getElementById("admin-main");
+      if (mainArea) {
+        mainArea.scrollTo({ top: 0, behavior: "smooth" });
+      } else {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
     }
   };
 
@@ -397,17 +407,26 @@ function TestsTab({ saveLock }) {
   return (
     <div className="space-y-4">
       <Card>
-        <CardHeader>
-          <CardTitle>Categories</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex flex-wrap gap-2">
-            <Input placeholder="Category name" value={catName} onChange={(e) => setCatName(e.target.value)} />
-            <Button type="button" onClick={addCategory}>
-              Add category
-            </Button>
+        <CardHeader className="cursor-pointer" onClick={() => setShowCategories(!showCategories)}>
+          <div className="flex items-center justify-between">
+            <CardTitle>Categories</CardTitle>
+            {showCategories ? <FiChevronDown className="text-xl" /> : <FiChevronRight className="text-xl" />}
           </div>
-          {categories.map((c) => (
+        </CardHeader>
+        {showCategories && (
+          <CardContent className="space-y-3">
+            <div className="flex gap-2">
+              <Input placeholder="Search categories..." value={catSearch} onChange={(e) => setCatSearch(e.target.value)} />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Input placeholder="New category name" value={catName} onChange={(e) => setCatName(e.target.value)} />
+              <Button type="button" onClick={addCategory}>
+                Add category
+              </Button>
+            </div>
+            {categories
+              .filter(c => c.name.toLowerCase().includes(catSearch.toLowerCase()))
+              .map((c) => (
             <div key={c.id} className="flex flex-wrap items-center justify-between gap-2 border-b border-border py-2">
               {editingCategory === c.id ? (
                 <div className="flex flex-1 gap-2">
@@ -436,9 +455,10 @@ function TestsTab({ saveLock }) {
             </div>
           ))}
         </CardContent>
+        )}
       </Card>
 
-      <Card>
+      <Card ref={testFormRef}>
         <CardHeader>
           <CardTitle>{editingTest ? "Edit test" : "Add test"}</CardTitle>
         </CardHeader>
@@ -475,37 +495,54 @@ function TestsTab({ saveLock }) {
         </CardContent>
       </Card>
 
-      {tests.map((t) => (
-        <Card key={t.id}>
-          <CardContent className="flex flex-wrap items-center justify-between gap-2 py-4">
-            <div>
-              <p className="font-medium">{t.name}</p>
-              <p className="text-muted text-sm">
-                {t.category_name} · ₹{t.price} · {t.is_enabled ? "Enabled" : "Disabled"}
-              </p>
-            </div>
+      <Card>
+        <CardHeader className="cursor-pointer" onClick={() => setShowTests(!showTests)}>
+          <div className="flex items-center justify-between">
+            <CardTitle>Tests</CardTitle>
+            {showTests ? <FiChevronDown className="text-xl" /> : <FiChevronRight className="text-xl" />}
+          </div>
+        </CardHeader>
+        {showTests && (
+          <CardContent className="space-y-3">
             <div className="flex gap-2">
-              <Button size="sm" variant="outline" onClick={() => startEditingTest(t)}>
-                Edit
-              </Button>
-              <Button
-                size="sm"
-                type="button"
-                variant={t.is_enabled ? "outline" : "default"}
-                onClick={() => {
-                  if (t.is_enabled) setDisableTarget(t);
-                  else updateTest(t, { is_enabled: true });
-                }}
-              >
-                {t.is_enabled ? "Disable" : "Enable"}
-              </Button>
-              <Button size="sm" variant="destructive" onClick={() => setDeleteTestTarget(t)}>
-                Delete
-              </Button>
+              <Input placeholder="Search tests..." value={testSearch} onChange={(e) => setTestSearch(e.target.value)} />
+            </div>
+            <div className="space-y-3">
+              {tests
+                .filter(t => t.name.toLowerCase().includes(testSearch.toLowerCase()) || (t.category_name || "").toLowerCase().includes(testSearch.toLowerCase()))
+                .map((t) => (
+                  <div key={t.id} className="flex flex-wrap items-center justify-between gap-2 border border-border p-4 rounded-lg bg-surface">
+                    <div>
+                      <p className="font-medium">{t.name}</p>
+                      <p className="text-muted text-sm">
+                        {t.category_name} · ₹{t.price} · {t.is_enabled ? "Enabled" : "Disabled"}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" onClick={() => startEditingTest(t)}>
+                        Edit
+                      </Button>
+                      <Button
+                        size="sm"
+                        type="button"
+                        variant={t.is_enabled ? "outline" : "default"}
+                        onClick={() => {
+                          if (t.is_enabled) setDisableTarget(t);
+                          else updateTest(t, { is_enabled: true });
+                        }}
+                      >
+                        {t.is_enabled ? "Disable" : "Enable"}
+                      </Button>
+                      <Button size="sm" variant="destructive" onClick={() => setDeleteTestTarget(t)}>
+                        Delete
+                      </Button>
+                    </div>
+                  </div>
+                ))}
             </div>
           </CardContent>
-        </Card>
-      ))}
+        )}
+      </Card>
 
       <ConfirmDisableDialog
         open={!!disableTarget}
@@ -550,6 +587,7 @@ function PackagesTab({ saveLock }) {
   const [tests, setTests] = useState([]);
   const [form, setForm] = useState({ name: "", description: "", price: "", test_ids: [] });
   const [disableTarget, setDisableTarget] = useState(null);
+  const [testSearch, setTestSearch] = useState("");
 
   const load = () =>
     Promise.all([api.get("/admin/packages"), api.get("/admin/tests")]).then(([p, t]) => {
@@ -582,6 +620,7 @@ function PackagesTab({ saveLock }) {
       });
       toast.success("Package created");
       setForm({ name: "", description: "", price: "", test_ids: [] });
+      setTestSearch("");
       load();
     } catch (e) {
       toast.error(e.message);
@@ -615,8 +654,11 @@ function PackagesTab({ saveLock }) {
           <Input placeholder="Description" value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} />
           <Input placeholder="Price" type="number" value={form.price} onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))} />
           <p className="text-sm font-medium">Included tests</p>
+          <Input placeholder="Search tests..." value={testSearch} onChange={(e) => setTestSearch(e.target.value)} />
           <div className="max-h-40 overflow-y-auto rounded border border-border p-2">
-            {tests.map((t) => (
+            {tests
+              .filter(t => t.name.toLowerCase().includes(testSearch.toLowerCase()))
+              .map((t) => (
               <label key={t.id} className="flex items-center gap-2 py-1 text-sm">
                 <input type="checkbox" checked={form.test_ids.includes(t.id)} onChange={() => toggleTestId(t.id)} />
                 {t.name}
