@@ -4,7 +4,7 @@ import api from "@/lib/api";
 import { getApiData } from "@/lib/apiHelpers";
 import { formatSlotRange } from "@/lib/format";
 import { useAuth } from "@/context/AuthContext";
-import { FiChevronDown, FiChevronRight } from "react-icons/fi";
+import { FiChevronDown, FiChevronRight, FiX } from "react-icons/fi";
 import ConfirmDisableDialog from "@/components/ConfirmDisableDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -588,6 +588,9 @@ function PackagesTab({ saveLock }) {
   const [form, setForm] = useState({ name: "", description: "", price: "", test_ids: [] });
   const [disableTarget, setDisableTarget] = useState(null);
   const [testSearch, setTestSearch] = useState("");
+  const [editingPkg, setEditingPkg] = useState(null);
+  const [deletePkgTarget, setDeletePkgTarget] = useState(null);
+  const formRef = useRef(null);
 
   const load = () =>
     Promise.all([api.get("/admin/packages"), api.get("/admin/tests")]).then(([p, t]) => {
@@ -643,31 +646,116 @@ function PackagesTab({ saveLock }) {
     }
   };
 
+  const startEditingPkg = (p) => {
+    setEditingPkg(p);
+    setForm({
+      name: p.name,
+      description: p.description || "",
+      price: p.price,
+      test_ids: p.tests?.map((t) => t.id) || [],
+    });
+    if (formRef.current) {
+      formRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
+  const saveEditPkg = async () => {
+    if (saveLock.current) return;
+    saveLock.current = true;
+    try {
+      await api.put(`/admin/packages/${editingPkg.id}`, {
+        name: form.name,
+        description: form.description || null,
+        price: Number(form.price),
+        test_ids: form.test_ids,
+      });
+      toast.success("Package updated");
+      setEditingPkg(null);
+      setForm({ name: "", description: "", price: "", test_ids: [] });
+      load();
+    } catch (e) {
+      toast.error(e.message);
+    } finally {
+      saveLock.current = false;
+    }
+  };
+
+  const cancelEditPkg = () => {
+    setEditingPkg(null);
+    setForm({ name: "", description: "", price: "", test_ids: [] });
+  };
+
+  const deletePkg = async (id) => {
+    if (saveLock.current) return;
+    saveLock.current = true;
+    try {
+      await api.delete(`/admin/packages/${id}`);
+      toast.success("Package deleted");
+      if (editingPkg?.id === id) cancelEditPkg();
+      load();
+    } catch (e) {
+      toast.error(e.message);
+    } finally {
+      saveLock.current = false;
+    }
+  };
+
   return (
     <div className="space-y-4">
-      <Card>
+      <Card ref={formRef}>
         <CardHeader>
-          <CardTitle>Create package</CardTitle>
+          <CardTitle>{editingPkg ? "Edit package" : "Create package"}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <Input placeholder="Name" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
           <Input placeholder="Description" value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} />
           <Input placeholder="Price" type="number" value={form.price} onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))} />
-          <p className="text-sm font-medium">Included tests</p>
-          <Input placeholder="Search tests..." value={testSearch} onChange={(e) => setTestSearch(e.target.value)} />
-          <div className="max-h-40 overflow-y-auto rounded border border-border p-2">
-            {tests
-              .filter(t => t.name.toLowerCase().includes(testSearch.toLowerCase()))
-              .map((t) => (
-              <label key={t.id} className="flex items-center gap-2 py-1 text-sm">
-                <input type="checkbox" checked={form.test_ids.includes(t.id)} onChange={() => toggleTestId(t.id)} />
-                {t.name}
-              </label>
-            ))}
+          
+          <div className="pt-2">
+            <p className="text-sm font-medium mb-2">Included tests</p>
+            {form.test_ids.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-3">
+                {form.test_ids.map((id) => {
+                  const test = tests.find((t) => t.id === id);
+                  if (!test) return null;
+                  return (
+                    <div key={id} className="group flex items-center gap-1 rounded-full bg-primary-light px-3 py-1 text-xs font-medium text-primary">
+                      {test.name}
+                      <button
+                        type="button"
+                        onClick={() => toggleTestId(id)}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity hover:text-red-500"
+                        title="Remove"
+                      >
+                        <FiX />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            <Input placeholder="Search tests..." value={testSearch} onChange={(e) => setTestSearch(e.target.value)} />
+            <div className="mt-2 max-h-40 overflow-y-auto rounded border border-border p-2">
+              {tests
+                .filter(t => t.name.toLowerCase().includes(testSearch.toLowerCase()))
+                .map((t) => (
+                <label key={t.id} className="flex items-center gap-2 py-1 text-sm">
+                  <input type="checkbox" checked={form.test_ids.includes(t.id)} onChange={() => toggleTestId(t.id)} />
+                  {t.name}
+                </label>
+              ))}
+            </div>
           </div>
-          <Button type="button" onClick={create}>
-            Create package
-          </Button>
+          <div className="flex gap-2">
+            <Button type="button" onClick={editingPkg ? saveEditPkg : create}>
+              {editingPkg ? "Save changes" : "Create package"}
+            </Button>
+            {editingPkg && (
+              <Button type="button" variant="outline" onClick={cancelEditPkg}>
+                Cancel
+              </Button>
+            )}
+          </div>
         </CardContent>
       </Card>
 
@@ -680,16 +768,25 @@ function PackagesTab({ saveLock }) {
                 ₹{p.price} · {p.tests?.length || 0} tests · {p.is_enabled ? "Enabled" : "Disabled"}
               </p>
             </div>
-            <Button
-              type="button"
-              variant={p.is_enabled ? "outline" : "default"}
-              onClick={() => {
-                if (p.is_enabled) setDisableTarget(p);
-                else updatePkg(p, { is_enabled: true });
-              }}
-            >
-              {p.is_enabled ? "Disable" : "Enable"}
-            </Button>
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" onClick={() => startEditingPkg(p)}>
+                Edit
+              </Button>
+              <Button
+                size="sm"
+                type="button"
+                variant={p.is_enabled ? "outline" : "default"}
+                onClick={() => {
+                  if (p.is_enabled) setDisableTarget(p);
+                  else updatePkg(p, { is_enabled: true });
+                }}
+              >
+                {p.is_enabled ? "Disable" : "Enable"}
+              </Button>
+              <Button size="sm" variant="destructive" onClick={() => setDeletePkgTarget(p)}>
+                Delete
+              </Button>
+            </div>
           </CardContent>
         </Card>
       ))}
@@ -702,6 +799,18 @@ function PackagesTab({ saveLock }) {
         onConfirm={() => {
           updatePkg(disableTarget, { is_enabled: false });
           setDisableTarget(null);
+        }}
+      />
+
+      <ConfirmDisableDialog
+        open={!!deletePkgTarget}
+        onOpenChange={() => setDeletePkgTarget(null)}
+        title="Delete package?"
+        description="Are you sure you want to permanently delete this package? This action cannot be undone."
+        confirmLabel="Delete"
+        onConfirm={() => {
+          deletePkg(deletePkgTarget.id);
+          setDeletePkgTarget(null);
         }}
       />
     </div>

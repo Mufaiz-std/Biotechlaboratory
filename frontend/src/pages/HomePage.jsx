@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { 
   FiActivity, 
@@ -7,28 +8,48 @@ import {
   FiCheckCircle, 
   FiClock, 
   FiBriefcase,
-  FiMenu
+  FiMenu,
+  FiX
 } from "react-icons/fi";
 import { Button } from "@/components/ui/button";
 
 export default function HomePage() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   return (
     <div className="flex min-h-svh flex-col bg-background pb-20">
       {/* Top Bar */}
       <header className="sticky top-0 z-50 flex items-center justify-between border-b border-border bg-surface px-4 py-3">
         <div className="flex items-center gap-3">
-          <button type="button" className="text-xl text-foreground">
-            <FiMenu aria-hidden />
+          <button type="button" className="text-xl text-foreground md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+            {isMenuOpen ? <FiX aria-hidden /> : <FiMenu aria-hidden />}
           </button>
           <div className="flex items-center gap-2 text-primary">
             <FiActivity className="text-2xl" aria-hidden />
             <span className="text-xl font-bold">MedPrecise</span>
           </div>
         </div>
-        <Button asChild size="sm" variant="outline" className="text-xs">
+        <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-muted">
+          <Link to="/" className="hover:text-primary">Home</Link>
+          <Link to="/book" className="hover:text-primary">Home Collection</Link>
+          <Link to="/tests" className="hover:text-primary">View Tests</Link>
+          <Link to="/admin/login" className="hover:text-primary">Admin</Link>
+        </nav>
+        <Button asChild size="sm" variant="outline" className="hidden text-xs md:inline-flex">
           <Link to="/book">Book Now</Link>
         </Button>
       </header>
+
+      {isMenuOpen && (
+        <div className="md:hidden border-b border-border bg-surface px-4 py-4 space-y-4 fixed top-[61px] left-0 right-0 z-40 shadow-md">
+          <Link to="/" className="block text-base font-medium text-foreground hover:text-primary" onClick={() => setIsMenuOpen(false)}>Home</Link>
+          <Link to="/book" className="block text-base font-medium text-foreground hover:text-primary" onClick={() => setIsMenuOpen(false)}>Home Collection</Link>
+          <Link to="/tests" className="block text-base font-medium text-foreground hover:text-primary" onClick={() => setIsMenuOpen(false)}>View Tests</Link>
+          <Link to="/admin/login" className="block text-base font-medium text-foreground hover:text-primary" onClick={() => setIsMenuOpen(false)}>Admin</Link>
+          <Button asChild size="sm" className="w-full mt-4">
+            <Link to="/book" onClick={() => setIsMenuOpen(false)}>Book Now</Link>
+          </Button>
+        </div>
+      )}
 
       <main className="flex-1">
         {/* Hero Section */}

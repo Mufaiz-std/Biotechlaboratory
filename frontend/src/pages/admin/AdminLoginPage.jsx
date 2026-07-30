@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
-import { FiActivity, FiUser, FiLock, FiArrowRight, FiShield, FiPhone } from "react-icons/fi";
+import { FiActivity, FiUser, FiLock, FiArrowRight, FiShield, FiPhone, FiEye, FiEyeOff } from "react-icons/fi";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 
@@ -9,8 +9,9 @@ export default function AdminLoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [phone, setPhone] = useState("+91");
+  const [phone, setPhone] = useState("+91 ");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const onSubmit = async (e) => {
@@ -91,14 +92,25 @@ export default function AdminLoginPage() {
                 <input
                   id="password"
                   name="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full rounded-md border border-border bg-surface py-2.5 pl-10 pr-3 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                  className="block w-full rounded-md border border-border bg-surface py-2.5 pl-10 pr-10 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                   placeholder="••••••••"
                 />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 flex items-center pr-3"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <FiEyeOff className="h-5 w-5 text-muted-foreground hover:text-foreground" aria-hidden />
+                  ) : (
+                    <FiEye className="h-5 w-5 text-muted-foreground hover:text-foreground" aria-hidden />
+                  )}
+                </button>
               </div>
             </div>
             

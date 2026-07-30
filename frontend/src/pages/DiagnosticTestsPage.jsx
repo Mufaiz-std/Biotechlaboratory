@@ -63,11 +63,10 @@ export default function DiagnosticTestsPage() {
         <div className="no-scrollbar mt-2 flex gap-2 overflow-x-auto pb-1">
           <button
             type="button"
-            className={`shrink-0 rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
-              selectedCategory === "All Tests"
-                ? "border-primary bg-primary text-primary-foreground"
-                : "border-border bg-surface text-foreground hover:bg-background"
-            }`}
+            className={`shrink-0 rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${selectedCategory === "All Tests"
+              ? "border-primary bg-primary text-primary-foreground"
+              : "border-border bg-surface text-foreground hover:bg-background"
+              }`}
             onClick={() => setSelectedCategory("All Tests")}
           >
             All Tests
@@ -76,11 +75,10 @@ export default function DiagnosticTestsPage() {
             <button
               key={c.id}
               type="button"
-              className={`shrink-0 rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
-                selectedCategory === c.name
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border bg-surface text-foreground hover:bg-background"
-              }`}
+              className={`shrink-0 rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${selectedCategory === c.name
+                ? "border-primary bg-primary text-primary-foreground"
+                : "border-border bg-surface text-foreground hover:bg-background"
+                }`}
               onClick={() => setSelectedCategory(c.name)}
             >
               {c.name}
@@ -114,7 +112,7 @@ export default function DiagnosticTestsPage() {
                       </span>
                     )}
                   </div>
-                  
+
                   {/* Info */}
                   <div>
                     <h3 className="font-bold text-foreground">{test.name}</h3>
@@ -126,7 +124,7 @@ export default function DiagnosticTestsPage() {
                   {/* Price & Action */}
                   <div className="mt-2 flex items-center justify-between border-t border-border/50 pt-3">
                     <span className="text-lg font-bold text-foreground">
-                      ${test.price.toFixed(2)}
+                      ₹{test.price ? test.price.toFixed(2) : "N/A"}
                     </span>
                     <Button size="sm" onClick={() => handleBookNow(test.id)}>
                       Book Now
