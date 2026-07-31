@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { MapContainer, Marker, TileLayer, useMapEvents } from "react-leaflet";
+import { MapContainer, Marker, TileLayer, useMapEvents, useMap } from "react-leaflet";
 import L from "leaflet";
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
@@ -38,6 +38,16 @@ function DraggableMarker({ position, onDragEnd }) {
   );
 }
 
+function MapUpdater({ center }) {
+  const map = useMap();
+  useEffect(() => {
+    if (center) {
+      map.flyTo(center, 16, { animate: true, duration: 1.5 });
+    }
+  }, [center, map]);
+  return null;
+}
+
 export default function AddressMap({
   latitude,
   longitude,
@@ -71,9 +81,24 @@ export default function AddressMap({
 
   const reverseGeocode = async (lat, lng) => {
     try {
+      const MAPPLS_API_KEY = import.meta.env.VITE_MAPPLS_API_KEY;
+      if (MAPPLS_API_KEY) {
+        const res = await fetch(
+          `/mappls-api/advancedmaps/v1/${MAPPLS_API_KEY}/rev_geocode?lat=${lat}&lng=${lng}`,
+          { headers: { Accept: "application/json" } }
+        );
+        const data = await res.json();
+        console.log("MAPPLS RAW DATA:", data);
+        if (data?.results?.[0]?.formatted_address) {
+          onAddressChange(data.results[0].formatted_address);
+          return;
+        }
+      }
+
+      // Fallback to OSM Nominatim if no API key or no results
       const res = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`,
-        { headers: { Accept: "application/json" } },
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
+        { headers: { Accept: "application/json" } }
       );
       const data = await res.json();
       if (data?.display_name) onAddressChange(data.display_name);
@@ -86,6 +111,7 @@ export default function AddressMap({
     if (!search.trim()) return;
     setSearching(true);
     try {
+      // Try OpenStreetMap for search (Mappls search usually requires OAuth backend)
       const res = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(search)}&limit=1`,
         { headers: { Accept: "application/json" } },
@@ -141,11 +167,11 @@ export default function AddressMap({
             position={position}
             onDragEnd={(lat, lng) => {
               onCoordsChange(lat, lng);
-              if (!address || address.trim() === "") {
-                reverseGeocode(lat, lng);
-              }
+              // Always reverse-geocode when the pin moves so address matches pin location
+              reverseGeocode(lat, lng);
             }}
           />
+          {position && <MapUpdater center={position} />}
         </MapContainer>
       </div>
       <div>

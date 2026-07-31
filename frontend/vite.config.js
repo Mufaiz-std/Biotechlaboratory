@@ -12,5 +12,13 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    allowedHosts: ["choreatic-unsombre-winnifred.ngrok-free.dev", "localhost"],
+    proxy: {
+      "/mappls-api": {
+        target: "https://apis.mappls.com",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/mappls-api/, ""),
+      },
+    },
   },
 });
