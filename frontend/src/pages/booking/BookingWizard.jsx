@@ -7,6 +7,7 @@ import api from "@/lib/api";
 import { getApiData } from "@/lib/apiHelpers";
 import {
   clearBookingDraft,
+  defaultDraft,
   ensureIdempotencyKey,
   loadBookingDraft,
   saveBookingDraft,
@@ -232,11 +233,22 @@ export default function BookingWizard() {
       setCompleted(data);
       setActiveStep(4);
       clearBookingDraft();
-      openWhatsApp(data.whatsapp_url, {
-        labNumber: catalog.lab?.whatsapp_number || catalog.lab?.phone,
-        message: data.whatsapp_message,
-      });
-      toast.success(`Booking ${data.booking_number} created`);
+      setDraft(defaultDraft());
+
+      toast.success(`Booking ${data.booking_number} created successfully!`);
+
+      // 1. Try to open WhatsApp in a new tab (works if called close to user gesture)
+      if (data.whatsapp_url) {
+        const opened = window.open(data.whatsapp_url, "_blank", "noopener,noreferrer");
+        // 2. If the browser blocked the popup, copy the pre-filled message to clipboard
+        //    so the patient can paste it themselves. The "Open WhatsApp" button on the
+        //    success screen is always there as a manual fallback.
+        if (!opened && data.whatsapp_message && navigator.clipboard?.writeText) {
+          navigator.clipboard.writeText(data.whatsapp_message).then(() => {
+            toast.success("WhatsApp blocked — message copied to clipboard!");
+          });
+        }
+      }
     } catch (e) {
       toast.error(e.message);
     } finally {

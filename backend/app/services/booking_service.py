@@ -24,6 +24,7 @@ from app.services.helpers import (
     count_slot_bookings,
     generate_booking_number,
 )
+from app.services.push_service import send_push_to_admins
 from app.services.whatsapp_service import build_admin_action_url, build_patient_submission_url
 
 settings = get_settings()
@@ -187,6 +188,14 @@ def create_booking(db: Session, payload: BookingCreateRequest) -> dict:
         _format_slot_time(slot),
         tests_summary_str,
     )
+
+    send_push_to_admins(
+        db,
+        title="New booking received",
+        body=f"{booking.patient_name} • {tests_summary_str or 'Prescription'} • {booking.preferred_date.strftime('%d %b')} • Tap to reply on WhatsApp",
+        url=url,  # clicking the notification opens WhatsApp with pre-filled message
+    )
+
     return {
         "booking_id": booking.id,
         "booking_number": booking.booking_number,
@@ -371,6 +380,13 @@ def accept_booking(db: Session, booking_id: int, technician: User) -> dict:
             "DATE": booking.preferred_date.strftime("%d %b %Y"),
         },
     )
+
+    send_push_to_admins(
+        db,
+        title="Booking accepted",
+        body=f"{booking.booking_number} for {booking.patient_name} was accepted.",
+    )
+
     return {"booking": detail, "whatsapp_url": url, "whatsapp_message": message, "lab_whatsapp_number": lab_phone}
 
 

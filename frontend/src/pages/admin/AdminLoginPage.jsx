@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
 import { FiActivity, FiUser, FiLock, FiArrowRight, FiShield, FiPhone, FiEye, FiEyeOff } from "react-icons/fi";
+import { requestNotificationPermission, registerServiceWorker, subscribePush } from '@/utils/push';
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 
@@ -21,6 +22,20 @@ export default function AdminLoginPage() {
     try {
       await login(phone, password);
       toast.success("Welcome back");
+      if ("Notification" in window && "serviceWorker" in navigator) {
+        let perm = Notification.permission;
+        if (perm !== "granted") {
+          perm = await requestNotificationPermission();
+        }
+        if (perm === "granted") {
+          try {
+            const reg = await registerServiceWorker();
+            await subscribePush(reg);
+          } catch (pushErr) {
+            console.warn("Push subscription failed:", pushErr);
+          }
+        }
+      }
       const dest = location.state?.from || "/admin/bookings";
       navigate(dest, { replace: true });
     } catch (err) {

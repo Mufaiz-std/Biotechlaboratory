@@ -43,8 +43,52 @@ from app.services.laboratory_service import get_laboratory, update_laboratory
 from app.services.package_service import PackageError, create_package, list_packages, update_package
 from app.services.slot_service import SlotError, create_slot, list_slots, update_slot
 from app.services.whatsapp_template_service import list_templates, update_template
+from app.models.push_subscription import PushSubscription
 
 router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(get_current_user)])
+
+@router.post("/push/subscribe")
+def admin_subscribe_push(subscription: dict, db: Session = Depends(get_db)):
+    endpoint = subscription.get("endpoint")
+    # Update if already exists (same browser), otherwise insert
+    existing = db.query(PushSubscription).filter(PushSubscription.endpoint == endpoint).first()
+    if existing:
+        existing.auth = subscription["keys"]["auth"]
+        existing.p256dh = subscription["keys"]["p256dh"]
+    else:
+        sub = PushSubscription(
+            endpoint=endpoint,
+            auth=subscription["keys"]["auth"],
+            p256dh=subscription["keys"]["p256dh"],
+        )
+        db.add(sub)
+    db.commit()
+    return success_response("Push subscription saved")
+
+
+@router.get("/push/subscriptions")
+def admin_list_push_subscriptions(db: Session = Depends(get_db)):
+    subs = db.query(PushSubscription).order_by(PushSubscription.created_at.desc()).all()
+    return success_response("Subscriptions fetched", [
+        {
+            "id": s.id,
+            "endpoint_prefix": s.endpoint[:60] + "...",
+            "created_at": s.created_at.isoformat() if s.created_at else None,
+        }
+        for s in subs
+    ])
+
+
+@router.post("/push/test")
+def admin_test_push(db: Session = Depends(get_db)):
+    from app.services.push_service import send_push_to_admins
+    sent = send_push_to_admins(
+        db,
+        title="Test Notification",
+        body="If you see this, push is working! ✅",
+        url="/admin/bookings",
+    )
+    return success_response(f"Test push sent to {sent} device(s)")
 
 
 def _category_response(cat: Category) -> dict:

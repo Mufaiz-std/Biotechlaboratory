@@ -14,6 +14,11 @@ export default defineConfig({
     port: 5173,
     allowedHosts: ["choreatic-unsombre-winnifred.ngrok-free.dev", "localhost"],
     proxy: {
+      "/api": {
+        target: "http://localhost:8000",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ""),
+      },
       "/mappls-api": {
         target: "https://apis.mappls.com",
         changeOrigin: true,

@@ -1,6 +1,6 @@
 const STORAGE_KEY = "lab_booking_draft_v1";
 
-const defaultDraft = () => ({
+export const defaultDraft = () => ({
   step: 0,
   patient_name: "",
   age: "",

@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -6,6 +7,9 @@ from fastapi.staticfiles import StaticFiles
 
 from app.core.config import get_settings
 from app.routers import admin, auth, health, public
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s: %(message)s")
+logger = logging.getLogger(__name__)
 
 settings = get_settings()
 

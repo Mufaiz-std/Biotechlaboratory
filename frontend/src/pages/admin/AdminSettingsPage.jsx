@@ -4,7 +4,8 @@ import api from "@/lib/api";
 import { getApiData } from "@/lib/apiHelpers";
 import { formatSlotRange } from "@/lib/format";
 import { useAuth } from "@/context/AuthContext";
-import { FiChevronDown, FiChevronRight, FiX } from "react-icons/fi";
+import { FiChevronDown, FiChevronRight, FiX, FiBell, FiBellOff, FiCheckCircle } from "react-icons/fi";
+import { requestNotificationPermission, registerServiceWorker, subscribePush } from '@/utils/push';
 import ConfirmDisableDialog from "@/components/ConfirmDisableDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +20,7 @@ const TABS = [
   { id: "packages", label: "Health Packages" },
   { id: "whatsapp", label: "WhatsApp Templates" },
   { id: "profile", label: "Profile" },
+  { id: "notifications", label: "🔔 Notifications" },
 ];
 
 const DISABLE_MSG =
@@ -49,6 +51,7 @@ export default function AdminSettingsPage() {
       {tab === "packages" && <PackagesTab saveLock={saveLock} />}
       {tab === "whatsapp" && <WhatsAppTab saveLock={saveLock} />}
       {tab === "profile" && <ProfileTab saveLock={saveLock} />}
+      {tab === "notifications" && <NotificationsTab />}
     </div>
   );
 }
@@ -930,6 +933,147 @@ function ProfileTab({ saveLock }) {
         <Button type="button" onClick={save}>
           Update profile
         </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+function NotificationsTab() {
+  const [status, setStatus] = useState(null); // 'subscribed' | 'not-subscribed' | 'denied' | 'unsupported'
+  const [loading, setLoading] = useState(false);
+  const [subscriptions, setSubscriptions] = useState([]);
+
+  const checkStatus = async () => {
+    if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+      setStatus('unsupported');
+      return;
+    }
+    const perm = Notification.permission;
+    if (perm === 'denied') {
+      setStatus('denied');
+      return;
+    }
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      setStatus(sub ? 'subscribed' : 'not-subscribed');
+    } catch {
+      setStatus('not-subscribed');
+    }
+  };
+
+  const loadSubscriptions = async () => {
+    try {
+      const res = await api.get('/admin/push/subscriptions');
+      setSubscriptions(getApiData(res) || []);
+    } catch {
+      // endpoint may not exist yet
+    }
+  };
+
+  useEffect(() => {
+    checkStatus();
+    loadSubscriptions();
+  }, []);
+
+  const enableNotifications = async () => {
+    if (loading) return;
+    setLoading(true);
+    try {
+      let perm = Notification.permission;
+      if (perm !== 'granted') {
+        perm = await requestNotificationPermission();
+      }
+      if (perm !== 'granted') {
+        toast.error('Notification permission denied. Please enable it in your browser settings.');
+        setStatus('denied');
+        return;
+      }
+      const reg = await registerServiceWorker();
+      // Force re-subscribe: unsubscribe any existing subscription first
+      const existing = await reg.pushManager.getSubscription();
+      if (existing) await existing.unsubscribe();
+      await subscribePush(reg);
+      toast.success('✅ Push notifications enabled on this device!');
+      setStatus('subscribed');
+      loadSubscriptions();
+    } catch (e) {
+      toast.error('Failed: ' + e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const sendTestPush = async () => {
+    try {
+      await api.post('/admin/push/test');
+      toast.success('Test notification sent! Check this device.');
+    } catch (e) {
+      toast.error(e.message);
+    }
+  };
+
+  const statusInfo = {
+    subscribed: { color: 'text-green-500', icon: <FiCheckCircle />, label: 'Push notifications are ACTIVE on this device' },
+    'not-subscribed': { color: 'text-yellow-500', icon: <FiBellOff />, label: 'Not subscribed on this device — click Enable below' },
+    denied: { color: 'text-red-500', icon: <FiBellOff />, label: 'Notifications BLOCKED in browser — enable in site settings' },
+    unsupported: { color: 'text-gray-400', icon: <FiBellOff />, label: 'Push notifications not supported in this browser' },
+  };
+
+  const info = status ? statusInfo[status] : null;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <FiBell /> Push Notification Setup
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="rounded-lg border border-border bg-surface/50 p-4 text-sm space-y-2">
+          <p className="font-semibold">📱 How to get notifications on your phone:</p>
+          <ol className="list-decimal pl-4 space-y-1 text-muted">
+            <li>Open the ngrok URL on your phone&apos;s Chrome browser</li>
+            <li>Log in to the admin panel</li>
+            <li>Go to Settings → 🔔 Notifications tab</li>
+            <li>Click <strong>&quot;Enable on this device&quot;</strong> and allow notifications</li>
+            <li>Done — new bookings will now alert your phone!</li>
+          </ol>
+        </div>
+
+        {info && (
+          <div className={`flex items-center gap-2 font-medium ${info.color}`}>
+            {info.icon} {info.label}
+          </div>
+        )}
+
+        <div className="flex flex-wrap gap-3">
+          <Button
+            onClick={enableNotifications}
+            disabled={loading || status === 'denied' || status === 'unsupported'}
+            className="gap-2"
+          >
+            <FiBell />
+            {loading ? 'Subscribing...' : status === 'subscribed' ? 'Re-subscribe this device' : 'Enable on this device'}
+          </Button>
+
+          {status === 'subscribed' && (
+            <Button variant="outline" onClick={sendTestPush} className="gap-2">
+              Send test notification to ALL devices
+            </Button>
+          )}
+        </div>
+
+        {subscriptions.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-sm font-semibold">Registered devices ({subscriptions.length}):</p>
+            {subscriptions.map((s) => (
+              <div key={s.id} className="text-xs text-muted bg-surface border border-border rounded p-2 font-mono break-all">
+                Device #{s.id} — registered {s.created_at ? new Date(s.created_at + 'Z').toLocaleString() : 'unknown'}
+              </div>
+            ))}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
