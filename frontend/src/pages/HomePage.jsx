@@ -25,7 +25,7 @@ export default function HomePage() {
           </button>
           <div className="flex items-center gap-2 text-primary">
             <FiActivity className="text-2xl" aria-hidden />
-            <span className="text-xl font-bold">MedPrecise</span>
+            <span className="text-xl font-bold">Biotech Laboratory</span>
           </div>
         </div>
         <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-muted">
@@ -107,8 +107,8 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="bg-background px-4 py-10 text-sm text-muted">
         <div className="mx-auto max-w-lg space-y-4">
-          <p className="font-bold text-foreground">MedPrecise</p>
-          <p>© 2026 MedPrecise Diagnostic Labs. ISO 9001:2015 Certified.</p>
+          <p className="font-bold text-foreground">Biotech Laboratory</p>
+          <p>© 2026 Biotech Laboratory. ISO 9001:2015 Certified.</p>
           <ul className="space-y-2">
             <li><Link to="/" className="hover:text-primary">Privacy Policy</Link></li>
             <li><Link to="/" className="hover:text-primary">Terms of Service</Link></li>

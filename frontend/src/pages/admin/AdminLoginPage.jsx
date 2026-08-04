@@ -53,7 +53,7 @@ export default function AdminLoginPage() {
         <div className="text-center">
           <div className="flex justify-center items-center gap-2 text-primary">
             <FiActivity className="text-3xl" aria-hidden />
-            <span className="text-2xl font-bold tracking-tight">MedPrecise</span>
+            <span className="text-2xl font-bold tracking-tight">Biotech Laboratory</span>
           </div>
           <h2 className="mt-8 text-3xl font-bold tracking-tight text-foreground">
             Admin Portal
@@ -142,7 +142,7 @@ export default function AdminLoginPage() {
           <FiShield className="mt-0.5 shrink-0 text-base text-primary" aria-hidden />
           <p className="leading-relaxed text-center">
             Access to this system is restricted and monitored. Unauthorized access is strictly prohibited. <br />
-            © 2026 MedPrecise Diagnostic Labs. ISO 9001:2015 Certified.
+            © 2026 Biotech Laboratory. ISO 9001:2015 Certified.
           </p>
         </div>
 

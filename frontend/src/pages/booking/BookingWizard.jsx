@@ -274,7 +274,7 @@ export default function BookingWizard() {
           <FiArrowLeft aria-hidden />
         </Link>
         <div className="flex items-center gap-2 text-primary">
-          <span className="text-xl font-bold">MedPrecise</span>
+          <span className="text-xl font-bold">Biotech Laboratory</span>
         </div>
         <div className="ml-auto text-[10px] font-bold uppercase tracking-widest text-primary flex items-center">
           <FiMapPin className="mr-1 text-sm" />
