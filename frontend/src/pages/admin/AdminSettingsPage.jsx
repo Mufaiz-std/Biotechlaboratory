@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useDebounce } from "@/lib/useDebounce";
 import toast from "react-hot-toast";
 import api from "@/lib/api";
 import { getApiData } from "@/lib/apiHelpers";
@@ -245,7 +246,9 @@ function TestsTab({ saveLock }) {
   const [showCategories, setShowCategories] = useState(true);
   const [showTests, setShowTests] = useState(true);
   const [catSearch, setCatSearch] = useState("");
+  const debouncedCatSearch = useDebounce(catSearch, 300);
   const [testSearch, setTestSearch] = useState("");
+  const debouncedTestSearch = useDebounce(testSearch, 300);
   const testFormRef = useRef(null);
 
   const load = () =>
@@ -428,7 +431,7 @@ function TestsTab({ saveLock }) {
               </Button>
             </div>
             {categories
-              .filter(c => c.name.toLowerCase().includes(catSearch.toLowerCase()))
+              .filter(c => c.name.toLowerCase().includes(debouncedCatSearch.toLowerCase()))
               .map((c) => (
             <div key={c.id} className="flex flex-wrap items-center justify-between gap-2 border-b border-border py-2">
               {editingCategory === c.id ? (
@@ -512,7 +515,7 @@ function TestsTab({ saveLock }) {
             </div>
             <div className="space-y-3">
               {tests
-                .filter(t => t.name.toLowerCase().includes(testSearch.toLowerCase()) || (t.category_name || "").toLowerCase().includes(testSearch.toLowerCase()))
+                .filter(t => t.name.toLowerCase().includes(debouncedTestSearch.toLowerCase()) || (t.category_name || "").toLowerCase().includes(debouncedTestSearch.toLowerCase()))
                 .map((t) => (
                   <div key={t.id} className="flex flex-wrap items-center justify-between gap-2 border border-border p-4 rounded-lg bg-surface">
                     <div>
@@ -591,6 +594,7 @@ function PackagesTab({ saveLock }) {
   const [form, setForm] = useState({ name: "", description: "", price: "", test_ids: [] });
   const [disableTarget, setDisableTarget] = useState(null);
   const [testSearch, setTestSearch] = useState("");
+  const debouncedPkgTestSearch = useDebounce(testSearch, 300);
   const [editingPkg, setEditingPkg] = useState(null);
   const [deletePkgTarget, setDeletePkgTarget] = useState(null);
   const formRef = useRef(null);
@@ -740,7 +744,7 @@ function PackagesTab({ saveLock }) {
             <Input placeholder="Search tests..." value={testSearch} onChange={(e) => setTestSearch(e.target.value)} />
             <div className="mt-2 max-h-40 overflow-y-auto rounded border border-border p-2">
               {tests
-                .filter(t => t.name.toLowerCase().includes(testSearch.toLowerCase()))
+                .filter(t => t.name.toLowerCase().includes(debouncedPkgTestSearch.toLowerCase()))
                 .map((t) => (
                 <label key={t.id} className="flex items-center gap-2 py-1 text-sm">
                   <input type="checkbox" checked={form.test_ids.includes(t.id)} onChange={() => toggleTestId(t.id)} />

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useDebounce } from "@/lib/useDebounce";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import { FiSearch } from "react-icons/fi";
@@ -25,6 +26,7 @@ export default function BookingsDashboard() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 300);
   const [quick, setQuick] = useState("");
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [technicians, setTechnicians] = useState([]);
@@ -39,12 +41,11 @@ export default function BookingsDashboard() {
     area: "",
     has_prescription: "",
   });
-  const searchTimer = useRef(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const params = { search: search || undefined };
+      const params = { search: debouncedSearch || undefined };
       if (quick === "today" || quick === "tomorrow") params.date_filter = quick;
       else if (quick) params.status = quick;
       if (advanced.technician_id) params.technician_id = advanced.technician_id;
@@ -67,7 +68,7 @@ export default function BookingsDashboard() {
     } finally {
       setLoading(false);
     }
-  }, [search, quick, advanced]);
+  }, [debouncedSearch, quick, advanced]);
 
   useEffect(() => {
     load();
@@ -79,11 +80,7 @@ export default function BookingsDashboard() {
     api.get("/admin/packages").then((r) => setPackages(getApiData(r)));
   }, []);
 
-  const onSearchChange = (value) => {
-    setSearch(value);
-    clearTimeout(searchTimer.current);
-    searchTimer.current = setTimeout(() => {}, 300);
-  };
+  const onSearchChange = (value) => setSearch(value);
 
   return (
     <div className="space-y-4">

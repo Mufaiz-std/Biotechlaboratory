@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useDebounce } from "@/lib/useDebounce";
 import { Link, useNavigate } from "react-router-dom";
 import { FiSearch, FiHome, FiPhone } from "react-icons/fi";
 import api from "@/lib/api";
@@ -9,6 +10,7 @@ export default function DiagnosticTestsPage() {
   const [tests, setTests] = useState([]);
   const [categories, setCategories] = useState([]);
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 300);
   const [selectedCategory, setSelectedCategory] = useState("All Tests");
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -23,7 +25,7 @@ export default function DiagnosticTestsPage() {
   }, []);
 
   const filteredTests = tests.filter((t) => {
-    const matchesSearch = t.name.toLowerCase().includes(search.toLowerCase());
+    const matchesSearch = t.name.toLowerCase().includes(debouncedSearch.toLowerCase());
     const matchesCategory =
       selectedCategory === "All Tests" ||
       categories.find((c) => c.name === selectedCategory)?.id === t.category_id;

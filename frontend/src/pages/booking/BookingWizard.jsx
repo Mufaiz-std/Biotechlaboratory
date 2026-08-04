@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useDebounce } from "@/lib/useDebounce";
 import { Link, useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
 import { FiArrowLeft, FiCheck, FiCheckCircle, FiMapPin, FiCalendar } from "react-icons/fi";
@@ -40,6 +41,7 @@ export default function BookingWizard() {
   const [availableSlots, setAvailableSlots] = useState([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [testSearch, setTestSearch] = useState("");
+  const debouncedTestSearch = useDebounce(testSearch, 300);
   const [testSort, setTestSort] = useState("az");
   const [activeCategory, setActiveCategory] = useState("all");
   const [catalogTab, setCatalogTab] = useState("tests");
@@ -108,8 +110,8 @@ export default function BookingWizard() {
     if (activeCategory !== "all") {
       list = list.filter((t) => t.category_id === Number(activeCategory));
     }
-    if (testSearch) {
-      list = list.filter((t) => fuzzyMatch(testSearch, t.name));
+    if (debouncedTestSearch) {
+      list = list.filter((t) => fuzzyMatch(debouncedTestSearch, t.name));
     }
     const sorted = [...list];
     sorted.sort((a, b) => {
@@ -120,7 +122,7 @@ export default function BookingWizard() {
       return 0;
     });
     return sorted;
-  }, [catalog.tests, activeCategory, testSearch, testSort]);
+  }, [catalog.tests, activeCategory, debouncedTestSearch, testSort]);
 
   const setDateMode = (mode) => {
     const today = new Date();
