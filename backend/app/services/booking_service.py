@@ -237,6 +237,24 @@ def _fuzzy_match(query: str, *values: str) -> bool:
     return q in combined or any(q in (v or "").lower() for v in values)
 
 
+def extract_area_name(address: str | None, landmark: str | None = None) -> str:
+    if landmark and landmark.strip() and not landmark.strip().isdigit():
+        return landmark.strip()
+    if not address:
+        return ""
+    import re
+    parts = [p.strip() for p in address.split(",") if p.strip()]
+    if not parts:
+        return ""
+    street_pattern = re.compile(
+        r'(\b(cross|road|rd|street|st|house|h\.?no|no\.?|flat|plot|door|apt|apartment|building|floor|block|lane)\b|\d)',
+        re.IGNORECASE
+    )
+    if len(parts) > 1 and street_pattern.search(parts[0]):
+        return parts[1]
+    return parts[0]
+
+
 def list_bookings(
     db: Session,
     search: str | None = None,
@@ -285,18 +303,22 @@ def list_bookings(
             tech = db.query(User).filter(User.id == b.assigned_technician_id).first()
             tech_name = tech.name if tech else None
         summary = test_names or b.package_name_at_booking or "Prescription only"
+        area_name = extract_area_name(b.address, b.landmark)
         item = {
             "id": b.id,
             "booking_number": b.booking_number,
             "patient_name": b.patient_name,
             "phone": b.phone,
+            "address": b.address,
+            "house_no": b.house_no,
+            "landmark": b.landmark,
             "status": b.status,
             "preferred_date": b.preferred_date,
             "slot_start": slot.start_time if slot else None,
             "slot_end": slot.end_time if slot else None,
             "tests_summary": summary,
             "package_name": b.package_name_at_booking,
-            "area": b.address.split(",")[0] if b.address else "",
+            "area": area_name,
             "assigned_technician_name": tech_name,
             "test_names": test_names,
         }

@@ -10,7 +10,7 @@ export default function DiagnosticTestsPage() {
   const [tests, setTests] = useState([]);
   const [categories, setCategories] = useState([]);
   const [search, setSearch] = useState("");
-  const debouncedSearch = useDebounce(search, 300);
+  const debouncedSearch = useDebounce(search);
   const [selectedCategory, setSelectedCategory] = useState("All Tests");
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();

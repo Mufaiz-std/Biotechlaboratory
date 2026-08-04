@@ -246,9 +246,9 @@ function TestsTab({ saveLock }) {
   const [showCategories, setShowCategories] = useState(true);
   const [showTests, setShowTests] = useState(true);
   const [catSearch, setCatSearch] = useState("");
-  const debouncedCatSearch = useDebounce(catSearch, 300);
+  const debouncedCatSearch = useDebounce(catSearch);
   const [testSearch, setTestSearch] = useState("");
-  const debouncedTestSearch = useDebounce(testSearch, 300);
+  const debouncedTestSearch = useDebounce(testSearch);
   const testFormRef = useRef(null);
 
   const load = () =>
@@ -594,7 +594,7 @@ function PackagesTab({ saveLock }) {
   const [form, setForm] = useState({ name: "", description: "", price: "", test_ids: [] });
   const [disableTarget, setDisableTarget] = useState(null);
   const [testSearch, setTestSearch] = useState("");
-  const debouncedPkgTestSearch = useDebounce(testSearch, 300);
+  const debouncedPkgTestSearch = useDebounce(testSearch);
   const [editingPkg, setEditingPkg] = useState(null);
   const [deletePkgTarget, setDeletePkgTarget] = useState(null);
   const formRef = useRef(null);

@@ -41,7 +41,7 @@ export default function BookingWizard() {
   const [availableSlots, setAvailableSlots] = useState([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [testSearch, setTestSearch] = useState("");
-  const debouncedTestSearch = useDebounce(testSearch, 300);
+  const debouncedTestSearch = useDebounce(testSearch);
   const [testSort, setTestSort] = useState("az");
   const [activeCategory, setActiveCategory] = useState("all");
   const [catalogTab, setCatalogTab] = useState("tests");

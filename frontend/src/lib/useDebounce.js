@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
  * @param {*}      value - The raw value to debounce.
  * @param {number} delay - Milliseconds to wait (default 300).
  */
-export function useDebounce(value, delay = 300) {
+export function useDebounce(value, delay = 600) {
   const [debounced, setDebounced] = useState(value);
 
   useEffect(() => {

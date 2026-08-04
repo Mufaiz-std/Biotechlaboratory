@@ -26,7 +26,7 @@ export default function BookingsDashboard() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const debouncedSearch = useDebounce(search, 300);
+  const debouncedSearch = useDebounce(search);
   const [quick, setQuick] = useState("");
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [technicians, setTechnicians] = useState([]);
@@ -199,6 +199,7 @@ export default function BookingsDashboard() {
               <th className="p-3 font-medium">Patient</th>
               <th className="p-3 font-medium">Phone</th>
               <th className="p-3 font-medium">Tests / Package</th>
+              <th className="p-3 font-medium">Address (Area)</th>
               <th className="p-3 font-medium">Date</th>
               <th className="p-3 font-medium">Time</th>
               <th className="p-3 font-medium">Technician</th>
@@ -207,9 +208,9 @@ export default function BookingsDashboard() {
           </thead>
           <tbody>
             {loading &&
-              Array.from({ length: 5 }).map((_, i) => (
+              Array.from({ length: 6 }).map((_, i) => (
                 <tr key={i}>
-                  <td colSpan={9} className="p-3">
+                  <td colSpan={10} className="p-3">
                     <Skeleton className="h-8 w-full" />
                   </td>
                 </tr>
@@ -224,6 +225,7 @@ export default function BookingsDashboard() {
                   <td className="p-3">{b.patient_name}</td>
                   <td className="p-3">{b.phone}</td>
                   <td className="p-3 max-w-[200px] truncate">{b.tests_summary}</td>
+                  <td className="p-3 max-w-[250px] truncate" title={b.address || b.area}>{b.area || b.landmark || b.address || "—"}</td>
                   <td className="p-3">{formatDate(b.preferred_date)}</td>
                   <td className="p-3">{formatSlotRange(b.slot_start, b.slot_end)}</td>
                   <td className="p-3">{b.assigned_technician_name || "—"}</td>
@@ -251,10 +253,10 @@ export default function BookingsDashboard() {
                 <p className="text-lg font-semibold">{b.patient_name}</p>
                 <p className="text-muted text-sm">{b.phone}</p>
                 <p className="text-sm">{b.tests_summary}</p>
-                <p className="text-sm">
+                <p className="text-sm font-medium text-foreground">Area: {b.area || b.landmark || b.address || "—"}</p>
+                <p className="text-sm text-muted">
                   {formatDate(b.preferred_date)} · {formatSlotRange(b.slot_start, b.slot_end)}
                 </p>
-                <p className="text-muted text-sm">Area: {b.area || "—"}</p>
                 <Button asChild className="w-full">
                   <Link to={`/admin/bookings/${b.id}`}>Open</Link>
                 </Button>
