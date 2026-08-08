@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDebounce } from "@/lib/useDebounce";
 import { Link, useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
-import { FiArrowLeft, FiCheck, FiCheckCircle, FiMapPin, FiCalendar } from "react-icons/fi";
+import { FiArrowLeft, FiCheck, FiCheckCircle, FiMapPin, FiCalendar, FiX } from "react-icons/fi";
 import { FaWhatsapp } from "react-icons/fa";
 import api from "@/lib/api";
 import { getApiData } from "@/lib/apiHelpers";
@@ -420,6 +420,20 @@ export default function BookingWizard() {
             {catalogTab === "tests" && (
               <div className="space-y-3">
                 <Input placeholder="Search tests" value={testSearch} onChange={(e) => setTestSearch(e.target.value)} />
+                
+                {selectedTests.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {selectedTests.map((t) => (
+                      <div key={t.id} className="flex items-center gap-1 bg-primary/10 text-primary border border-primary/20 px-2.5 py-1 rounded-full text-xs font-semibold shadow-sm">
+                        <span className="truncate max-w-[200px]">{t.name}</span>
+                        <button onClick={() => toggleTest(t.id)} className="hover:bg-primary/20 rounded-full p-0.5 transition-colors" aria-label="Remove test">
+                          <FiX className="text-sm" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1">
                   <Button size="sm" variant={activeCategory === "all" ? "default" : "outline"} onClick={() => setActiveCategory("all")} className="shrink-0 rounded-full">All</Button>
                   {catalog.categories.map((c) => (
