@@ -34,7 +34,7 @@ export default function BookingWizard() {
     }
     return d;
   });
-  
+
   const [activeStep, setActiveStep] = useState(draft.step > 3 ? 0 : draft.step);
   const [catalog, setCatalog] = useState({ categories: [], tests: [], packages: [], lab: null });
   const [loadingCatalog, setLoadingCatalog] = useState(true);
@@ -170,7 +170,7 @@ export default function BookingWizard() {
     if (step === 0) {
       if (!draft.patient_name.trim()) return "Full name is required";
       if (!draft.age || Number(draft.age) < 1) return "Valid age is required";
-      if (!draft.sex) return "Sex is required";
+      if (!draft.sex) return "Gender is required";
       if (!draft.phone || draft.phone.length < 10) return "WhatsApp number is required";
     }
     if (step === 1) {
@@ -329,7 +329,7 @@ export default function BookingWizard() {
                 />
               </div>
               <div>
-                <Label htmlFor="sex">Sex</Label>
+                <Label htmlFor="sex">Gender</Label>
                 <select
                   id="sex"
                   className="border-input bg-surface mt-1 h-10 w-full rounded-md border px-3 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
@@ -365,7 +365,7 @@ export default function BookingWizard() {
           title="Selected Tests"
           isCompleted={activeStep > 1}
           onEdit={() => setActiveStep(1)}
-          headerAction={activeStep === 1 ? null : <button onClick={(e) => {e.stopPropagation(); setActiveStep(1);}} className="text-primary text-xs font-bold uppercase tracking-wider">Add More</button>}
+          headerAction={activeStep === 1 ? null : <button onClick={(e) => { e.stopPropagation(); setActiveStep(1); }} className="text-primary text-xs font-bold uppercase tracking-wider">Add More</button>}
           summary={
             <div className="space-y-3">
               {selectedPackage && (
@@ -416,7 +416,7 @@ export default function BookingWizard() {
               <Button size="sm" variant={catalogTab === "packages" ? "default" : "outline"} onClick={() => setCatalogTab("packages")}>Packages</Button>
               <Button size="sm" variant={catalogTab === "prescription" ? "default" : "outline"} onClick={() => setCatalogTab("prescription")}>Prescription</Button>
             </div>
-            
+
             {catalogTab === "tests" && (
               <div className="space-y-3">
                 <Input placeholder="Search tests" value={testSearch} onChange={(e) => setTestSearch(e.target.value)} />
@@ -444,7 +444,7 @@ export default function BookingWizard() {
                 </div>
               </div>
             )}
-            
+
             {catalogTab === "packages" && (
               <div className="space-y-2 max-h-60 overflow-y-auto">
                 {catalog.packages.map((p) => (
@@ -458,14 +458,14 @@ export default function BookingWizard() {
             )}
 
             {catalogTab === "prescription" && (
-               <div className="space-y-4">
-                  <p className="text-sm text-muted">Upload prescription if you don't know which tests to select.</p>
-                  <input type="file" className="text-sm" accept="image/*,application/pdf" onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) uploadPrescription(file).catch(err => toast.error(err.message));
-                  }} />
-                  {draft.prescription_image_url && <p className="text-sm font-semibold text-success">Prescription attached.</p>}
-               </div>
+              <div className="space-y-4">
+                <p className="text-sm text-muted">Upload prescription if you don't know which tests to select.</p>
+                <input type="file" className="text-sm" accept="image/*,application/pdf" onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) uploadPrescription(file).catch(err => toast.error(err.message));
+                }} />
+                {draft.prescription_image_url && <p className="text-sm font-semibold text-success">Prescription attached.</p>}
+              </div>
             )}
 
             <Button onClick={goNext} className="w-full mt-2">Continue</Button>
@@ -485,8 +485,8 @@ export default function BookingWizard() {
               <p className="font-medium text-foreground">{draft.house_no ? `${draft.house_no}, ` : ""}{draft.address}</p>
               <p className="text-muted text-xs uppercase tracking-wider font-semibold mt-2">Schedule</p>
               <p className="font-medium text-foreground">
-                {draft.preferred_date ? formatDate(draft.preferred_date) : "—"} 
-                {draft.slot_id && availableSlots.find(s => s.id === draft.slot_id) 
+                {draft.preferred_date ? formatDate(draft.preferred_date) : "—"}
+                {draft.slot_id && availableSlots.find(s => s.id === draft.slot_id)
                   ? ` at ${formatSlotRange(availableSlots.find(s => s.id === draft.slot_id).start_time, availableSlots.find(s => s.id === draft.slot_id).end_time)}`
                   : ""}
               </p>
@@ -523,7 +523,7 @@ export default function BookingWizard() {
 
             <div className="border-t border-border pt-4">
               <Label className="flex items-center gap-1 mb-3 text-foreground font-semibold"><FiCalendar /> Schedule Date & Time</Label>
-              
+
               {/* Date Selector */}
               <div className="grid grid-cols-4 gap-2 mb-4">
                 {["today", "tomorrow"].map((mode) => (
@@ -538,17 +538,17 @@ export default function BookingWizard() {
                     <span className="text-lg font-bold">{addDays(new Date(), mode === "today" ? 0 : 1).getDate()}</span>
                   </Button>
                 ))}
-                 <Button
-                    type="button"
-                    variant={draft.date_mode === "custom" ? "outline" : "outline"}
-                    className={`h-16 flex-col gap-1 rounded-xl ${draft.date_mode === "custom" ? 'border-primary ring-1 ring-primary text-primary' : 'text-muted-foreground'}`}
-                    onClick={() => setDateMode("custom")}
-                  >
-                    <span className="text-[10px] font-semibold uppercase tracking-wider">Custom</span>
-                    <FiCalendar className="text-lg" />
-                  </Button>
+                <Button
+                  type="button"
+                  variant={draft.date_mode === "custom" ? "outline" : "outline"}
+                  className={`h-16 flex-col gap-1 rounded-xl ${draft.date_mode === "custom" ? 'border-primary ring-1 ring-primary text-primary' : 'text-muted-foreground'}`}
+                  onClick={() => setDateMode("custom")}
+                >
+                  <span className="text-[10px] font-semibold uppercase tracking-wider">Custom</span>
+                  <FiCalendar className="text-lg" />
+                </Button>
               </div>
-              
+
               {draft.date_mode === "custom" && (
                 <div className="mb-4">
                   <Input type="date" min={toDateInputValue(new Date())} value={draft.preferred_date} onChange={(e) => persist({ preferred_date: e.target.value, slot_id: null })} />
@@ -564,15 +564,15 @@ export default function BookingWizard() {
                     <p className="col-span-2 text-center text-sm text-muted">No slots available on this date.</p>
                   )}
                   {availableSlots.map((s) => (
-                     <Button
-                       key={s.id}
-                       type="button"
-                       variant="outline"
-                       className={`rounded-md font-medium h-10 ${draft.slot_id === s.id ? 'bg-primary text-primary-foreground border-primary' : 'text-foreground hover:bg-background'}`}
-                       onClick={() => persist({ slot_id: s.id })}
-                     >
-                       {formatSlotRange(s.start_time, s.end_time)}
-                     </Button>
+                    <Button
+                      key={s.id}
+                      type="button"
+                      variant="outline"
+                      className={`rounded-md font-medium h-10 ${draft.slot_id === s.id ? 'bg-primary text-primary-foreground border-primary' : 'text-foreground hover:bg-background'}`}
+                      onClick={() => persist({ slot_id: s.id })}
+                    >
+                      {formatSlotRange(s.start_time, s.end_time)}
+                    </Button>
                   ))}
                 </div>
               )}
@@ -588,7 +588,7 @@ export default function BookingWizard() {
           activeStep={activeStep}
           title="Review & Confirm"
           isCompleted={activeStep > 3}
-          onEdit={() => {}}
+          onEdit={() => { }}
           summary={null}
         >
           <div className="p-4 space-y-4">
@@ -638,10 +638,10 @@ export default function BookingWizard() {
       {/* Sticky Bottom Bar for activeStep < 3 (just showing total) */}
       {activeStep < 3 && (selectedTests.length > 0 || selectedPackage) && (
         <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-surface p-4 shadow-[0_-4px_6px_-1px_rgb(0,0,0,0.1)]">
-           <div className="mx-auto max-w-lg flex justify-between items-center">
-             <span className="text-sm font-semibold">{selectedPackage ? "1 Package" : `${selectedTests.length} Tests`} Selected</span>
-             <span className="text-lg font-bold">{formatCurrency(totalPrice)}</span>
-           </div>
+          <div className="mx-auto max-w-lg flex justify-between items-center">
+            <span className="text-sm font-semibold">{selectedPackage ? "1 Package" : `${selectedTests.length} Tests`} Selected</span>
+            <span className="text-lg font-bold">{formatCurrency(totalPrice)}</span>
+          </div>
         </div>
       )}
     </div>
@@ -662,7 +662,7 @@ function StepCard({ stepIndex, activeStep, title, isCompleted, onEdit, summary, 
   return (
     <div className={`mb-4 overflow-hidden rounded-xl bg-surface transition-colors ${isActive ? 'border-l-4 border-l-primary shadow-sm border-t border-r border-b border-border/50' : 'border border-border'}`}>
       {/* Header */}
-      <div 
+      <div
         className={`flex items-center justify-between p-4 ${isPast ? 'cursor-pointer hover:bg-background' : ''}`}
         onClick={() => { if (isPast && !isActive) onEdit(); }}
       >
