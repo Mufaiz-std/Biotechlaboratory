@@ -365,7 +365,7 @@ export default function BookingWizard() {
           title="Selected Tests"
           isCompleted={activeStep > 1}
           onEdit={() => setActiveStep(1)}
-          headerAction={activeStep === 1 ? null : <button onClick={(e) => { e.stopPropagation(); setActiveStep(1); }} className="text-primary text-xs font-bold uppercase tracking-wider">Add More</button>}
+          headerAction={activeStep === 1 ? null : <button onClick={(e) => { e.stopPropagation(); goNext(); }} className="text-primary text-xs font-bold uppercase tracking-wider">Add More</button>}
           summary={
             <div className="space-y-3">
               {selectedPackage && (
